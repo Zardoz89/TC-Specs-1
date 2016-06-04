@@ -9,7 +9,7 @@ Heracles Text Adapter
 |    Device type | 0x734D     | Memory mapped text display
 |        Version | 0x0084     |
 
-The Heracles Text Adapter, offers an powerful text display device that it's backwards compatible with the popular Nya Elektriska LEM1802.
+The Heracles Text Adapter, offers an powerful text display device that it's backwards compatible with the popular Nya Elektriska LEM1802, implementing the Bitwise Common Video Protocol (CVP).
 Plus the LEM1802 compatibility mode, have this features:
 
 - 32x12 color Text mode with 4x8 font (efective 128x96 pixels)
@@ -91,7 +91,9 @@ Video ram
   If the 256 glyphs fonts are enabled, the format of a word changes (LSB format ):
     
 ```
-    f f f f B b b b c c c c c c c c
+	|F E D C B A 9 8 7 6 5 4 3 2 1 0|
+    --------------------------------|
+    |f f f f B b b b c c c c c c c c|
 ```
   Where :
     - ffff defines what color use as foreground (ink) from the palette
@@ -102,35 +104,80 @@ Video ram
     - bbb defines what color use as background from the palette. Only allows to use the first 8 colors of the pallete
     - If B is set, the characted color will blink.
     
-TODO:    
 
 Font ram
 ----
 
-  The LEM1802 has a default built in font. If the user chooses, they may
-  supply their own font by mapping a 256 word memory region with two words
-  per character in the 128 character font.
-  By setting bits in these words, different characters and graphics can be
-  achieved. For example, the character F looks like this:
+  The Heracles Text Adapter has a default built in font on internal ROM. If the user chooses, they may supply their own font by mapping a variable memory size region. The size of this region depends of, if the 256 glyphs font mode is enabled, and if the font is of 4x8 or 8x8 pixels:
+  	- 128 glyphs font of 4x8 : 256 words
+  	- 256 glyphs font of 4x8 : 512 words
+  	- 128 glyphs font of 8x8 : 512 words
+  	- 256 glyphs font of 8x8 : 1024 words
+  
+  ### 4x8 fonts
+  On 4x8 fonts, the font are defined following the same format that on LEM1802, using two words per glyph. Each word defines two cols of a glyph. The first word half MSB bits defines the first column, and the half LSB bits defines the second column. For example, the character F looks like this:
+
+```
        word0 = 1111111100001001
        word1 = 0000100100000000
+```
   Or, split into octets:
+```
        word0 = 11111111 /
                00001001
        word1 = 00001001 /
                00000000
-    
+```
+  
+  ### 8x8 fonts
+  On 8x8 fonts, the font are defined on other format. Each word defines two rows of a glyph, where on the first word, the MSB half bits defines the first row, and the lSB half defines the second row.
+  For example, the character F looks like this :
+
+```
+Word | Value
+-----+--------
+  0  |0111111101000000 = 0x7F40
+  1  |0100000001111000 = 0x4078
+  2  |0100000001000000 = 0x4040
+  3  |0100000001000000 = 0x4040
+```
+  Or, split into octets:  
+```
+Word |76543210 <- BIT
+-----+---------------
+  0  |01111111 = 0x7F /
+     |01000000 = 0x40
+  1  |01000000 = 0x40 /
+     |01111000 = 0x78
+  2  |01000000 = 0x40 /
+     |01000000 = 0x40
+  3  |01000000 = 0x40 /
+     |01000000 = 0x40
+```
 
 Palette ram
 ----
 
-  The LEM1802 has a default built in palette. If the user chooses, they may
-  supply their own palette by mapping a 16 word memory region with one word
-  per palette entry in the 16 color palette.
+  The Heracles Text Adapter has a default built in palette. If the user chooses, they may supply their own palette by mapping a 16 word memory region with one word per palette entry in the 16 color palette.
+  
   Each color entry has the following bit format (in LSB-0):
-       0000rrrrggggbbbb
-  Where r, g, b are the red, green and blue channels. A higher value means a
-  lighter color.
+```
+	|F E D C B A 9 8 7 6 5 4 3 2 1 0|
+	|-------------------------------|
+	|0 0 0 0 r r r r g g g g b b b b|
+```
+  Where r, g, b are the red, green and blue channels. A higher value means a lighter color.
   
 Hardware cursor
 ----
+
+	TODO
+
+Display Mode Descriptors
+----
+
+  The Heracles Text Adapter, would retun this list of descriptors:
+  - 0x4000 0x6081 0x???? - 32x12 with 4x8 font
+  - 0x0400 0x6081 0x???? - 32x12 with 8x8 font
+  - 0x0A00 0xC881 0x???? - 80x25 with 4x8 font
+  - 0x0500 0xC881 0x???? - 40x25 with 8x8 font
