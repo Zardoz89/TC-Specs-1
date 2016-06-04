@@ -79,14 +79,14 @@ Video ram
 ----
   The behavour it's the same that LEM1802. But with a few differences.
     
-  ### Size
+### Size
     
   The size of the video ram depends of the actual video mode :
     - 32x12 : 384 words
     - 40x25 : 1000 words
     - 80x25 : 2000 words
       
-  ### 256 glyphs fonts and blink bit
+### 256 glyphs fonts and blink bit
     
   If the 256 glyphs fonts are enabled, the format of a word changes (LSB format ):
     
@@ -114,7 +114,7 @@ Font ram
   	- 128 glyphs font of 8x8 : 512 words
   	- 256 glyphs font of 8x8 : 1024 words
   
-  ### 4x8 fonts
+### 4x8 fonts
   On 4x8 fonts, the font are defined following the same format that on LEM1802, using two words per glyph. Each word defines two cols of a glyph. The first word half MSB bits defines the first column, and the half LSB bits defines the second column. For example, the character F looks like this:
 
 ```
@@ -129,7 +129,7 @@ Font ram
                00000000
 ```
   
-  ### 8x8 fonts
+### 8x8 fonts
   On 8x8 fonts, the font are defined on other format. Each word defines two rows of a glyph, where on the first word, the MSB half bits defines the first row, and the lSB half defines the second row.
   For example, the character F looks like this :
 
